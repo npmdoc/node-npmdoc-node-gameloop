@@ -1,0 +1,363 @@
+<div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a
+
+        href="https://github.com/tangmi/node-gameloop"
+
+    >node-gameloop (v0.1.4)</a>
+</h1>
+<h4>game loop designed for node applications, not for the browser</h4>
+<div class="apidocSectionDiv"><a
+    href="#apidoc.tableOfContents"
+    id="apidoc.tableOfContents"
+><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.node-gameloop">module node-gameloop</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.node-gameloop.clearGameLoop">
+            function <span class="apidocSignatureSpan">node-gameloop.</span>clearGameLoop
+            <span class="apidocSignatureSpan">(loopId)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.node-gameloop.setGameLoop">
+            function <span class="apidocSignatureSpan">node-gameloop.</span>setGameLoop
+            <span class="apidocSignatureSpan">(update, tickLengthMs = 1000 / 30)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <span class="apidocSignatureSpan">object <span class="apidocSignatureSpan">node-gameloop.</span>gameloop</span>
+
+        </li>
+
+    </ol></li>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.node-gameloop.gameloop">module node-gameloop.gameloop</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.node-gameloop.gameloop.clearGameLoop">
+            function <span class="apidocSignatureSpan">node-gameloop.gameloop.</span>clearGameLoop
+            <span class="apidocSignatureSpan">(loopId)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.node-gameloop.gameloop.setGameLoop">
+            function <span class="apidocSignatureSpan">node-gameloop.gameloop.</span>setGameLoop
+            <span class="apidocSignatureSpan">(update, tickLengthMs = 1000 / 30)</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.node-gameloop" id="apidoc.module.node-gameloop">module node-gameloop</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.node-gameloop.clearGameLoop" id="apidoc.element.node-gameloop.clearGameLoop">
+        function <span class="apidocSignatureSpan">node-gameloop.</span>clearGameLoop
+        <span class="apidocSignatureSpan">(loopId)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">clearGameLoop = function (loopId) {
+	// remove the loop id from the active loops
+	activeLoops.splice(activeLoops.indexOf(loopId), 1);
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+	// `delta` is the delta time from the last frame
+	console.log(&#x27;Hi there! (frame=%s, delta=%s)&#x27;, frameCount++, delta);
+}, 1000 / 30);
+
+// stop the loop 2 seconds later
+setTimeout(function() {
+	console.log(&#x27;2000ms passed, stopping the game loop&#x27;);
+	gameloop.<span class="apidocCodeKeywordSpan">clearGameLoop</span>(id);
+}, 2000);
+```
+
+## API
+
+```js
+var gameloop = require(&#x27;node-gameloop&#x27;);
+...</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.node-gameloop.setGameLoop" id="apidoc.element.node-gameloop.setGameLoop">
+        function <span class="apidocSignatureSpan">node-gameloop.</span>setGameLoop
+        <span class="apidocSignatureSpan">(update, tickLengthMs = 1000 / 30)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">setGameLoop = function (update, tickLengthMs = 1000 / 30) {
+	let loopId = getLoopId();
+	activeLoops.push(loopId);
+
+	// expected tick length
+	const tickLengthNano = tickLengthMs * ms2nano;
+
+	// We pick the floor of `tickLengthMs - 1` because the `setImmediate` below runs
+	// around 16ms later and if our coarse-grained &#x27;long wait&#x27; is too long, we tend
+	// to miss our target framerate by a little bit
+	const longwaitMs = Math.floor(tickLengthMs - 1);
+	const longwaitNano = longwaitMs * ms2nano;
+
+	let prev = getNano();
+	let target = getNano();
+
+	let frame = 0;
+
+	const gameLoop = function() {
+		frame++;
+
+		const now = getNano();
+
+		if (now &#x3e;= target) {
+			const delta = now - prev;
+
+			prev = now;
+			target = now + tickLengthNano;
+
+			// actually run user code
+			update(delta * nano2s);
+		}
+
+		// do not go on to renew loop if no longer active
+		if (activeLoops.indexOf(loopId) === -1) {
+			return;
+		}
+
+		// re-grab the current time in case we ran update and it took a long time
+		const remainingInTick = target - getNano();
+		if (remainingInTick &#x3e; longwaitNano) {
+			// unfortunately it seems our code/node leaks memory if setTimeout is
+			// called with a value less than 16, so we give up our accuracy for
+			// memory stability
+			setTimeout(gameLoop, Math.max(longwaitMs, 16));
+		} else {
+			setImmediate(gameLoop);
+		}
+	}
+
+	// begin the loop!
+	gameLoop();
+
+	return loopId;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+`node-gameloop` uses an API very similar to `setTimeout`/`setInterval`, returning an ID that can be used to clear the game loop
+later.
+
+```js
+const gameloop = require(&#x27;node-gameloop&#x27;);
+
+// start the loop at 30 fps (1000/30ms per frame) and grab its id
+let frameCount = 0;
+const id = gameloop.<span class="apidocCodeKeywordSpan">setGameLoop</span>(function(delta) {
+	// `delta` is the delta time from the last frame
+	console.log(&#x27;Hi there! (frame=%s, delta=%s)&#x27;, frameCount++, delta);
+}, 1000 / 30);
+
+// stop the loop 2 seconds later
+setTimeout(function() {
+	console.log(&#x27;2000ms passed, stopping the game loop&#x27;);
+...</pre></li>
+    </ul>
+
+
+
+
+</div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.node-gameloop.gameloop" id="apidoc.module.node-gameloop.gameloop">module node-gameloop.gameloop</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.node-gameloop.gameloop.clearGameLoop" id="apidoc.element.node-gameloop.gameloop.clearGameLoop">
+        function <span class="apidocSignatureSpan">node-gameloop.gameloop.</span>clearGameLoop
+        <span class="apidocSignatureSpan">(loopId)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">clearGameLoop = function (loopId) {
+	// remove the loop id from the active loops
+	activeLoops.splice(activeLoops.indexOf(loopId), 1);
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+	// `delta` is the delta time from the last frame
+	console.log(&#x27;Hi there! (frame=%s, delta=%s)&#x27;, frameCount++, delta);
+}, 1000 / 30);
+
+// stop the loop 2 seconds later
+setTimeout(function() {
+	console.log(&#x27;2000ms passed, stopping the game loop&#x27;);
+	gameloop.<span class="apidocCodeKeywordSpan">clearGameLoop</span>(id);
+}, 2000);
+```
+
+## API
+
+```js
+var gameloop = require(&#x27;node-gameloop&#x27;);
+...</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.node-gameloop.gameloop.setGameLoop" id="apidoc.element.node-gameloop.gameloop.setGameLoop">
+        function <span class="apidocSignatureSpan">node-gameloop.gameloop.</span>setGameLoop
+        <span class="apidocSignatureSpan">(update, tickLengthMs = 1000 / 30)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">setGameLoop = function (update, tickLengthMs = 1000 / 30) {
+	let loopId = getLoopId();
+	activeLoops.push(loopId);
+
+	// expected tick length
+	const tickLengthNano = tickLengthMs * ms2nano;
+
+	// We pick the floor of `tickLengthMs - 1` because the `setImmediate` below runs
+	// around 16ms later and if our coarse-grained &#x27;long wait&#x27; is too long, we tend
+	// to miss our target framerate by a little bit
+	const longwaitMs = Math.floor(tickLengthMs - 1);
+	const longwaitNano = longwaitMs * ms2nano;
+
+	let prev = getNano();
+	let target = getNano();
+
+	let frame = 0;
+
+	const gameLoop = function() {
+		frame++;
+
+		const now = getNano();
+
+		if (now &#x3e;= target) {
+			const delta = now - prev;
+
+			prev = now;
+			target = now + tickLengthNano;
+
+			// actually run user code
+			update(delta * nano2s);
+		}
+
+		// do not go on to renew loop if no longer active
+		if (activeLoops.indexOf(loopId) === -1) {
+			return;
+		}
+
+		// re-grab the current time in case we ran update and it took a long time
+		const remainingInTick = target - getNano();
+		if (remainingInTick &#x3e; longwaitNano) {
+			// unfortunately it seems our code/node leaks memory if setTimeout is
+			// called with a value less than 16, so we give up our accuracy for
+			// memory stability
+			setTimeout(gameLoop, Math.max(longwaitMs, 16));
+		} else {
+			setImmediate(gameLoop);
+		}
+	}
+
+	// begin the loop!
+	gameLoop();
+
+	return loopId;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+`node-gameloop` uses an API very similar to `setTimeout`/`setInterval`, returning an ID that can be used to clear the game loop
+later.
+
+```js
+const gameloop = require(&#x27;node-gameloop&#x27;);
+
+// start the loop at 30 fps (1000/30ms per frame) and grab its id
+let frameCount = 0;
+const id = gameloop.<span class="apidocCodeKeywordSpan">setGameLoop</span>(function(delta) {
+	// `delta` is the delta time from the last frame
+	console.log(&#x27;Hi there! (frame=%s, delta=%s)&#x27;, frameCount++, delta);
+}, 1000 / 30);
+
+// stop the loop 2 seconds later
+setTimeout(function() {
+	console.log(&#x27;2000ms passed, stopping the game loop&#x27;);
+...</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
